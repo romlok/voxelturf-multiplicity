@@ -13,6 +13,7 @@ function define_multiple_cities ()
 			local yStart = 10;
 			
 			local LOT_SIZE = turf.Lot.LOT_SIZE;
+			local TILE_SIZE = 5;
 			
 			-- Helper functions
 			
@@ -21,53 +22,30 @@ function define_multiple_cities ()
 				return ord - (ord % LOT_SIZE);
 			end
 			
-			local function get_perimeter_lots(radius, x, z)
-				-- Returns coordinates of all lots a certain distance from a centre-point
-				-- Based on a perfunctory glance at the Midpoint circle algorithm
-				-- NB, these are probably not the exact lots at the edge of a city.
+			local function get_city_limits(radius, cx, cz)
+				-- Return a table of a city's outer limit coordinates
+				-- City auto-gen uses 5x5 lot tiles, so the limits can extend outside the radius by up to 4 lots in the +ord directions.
+				return {
+					xMin = cx - radius,
+					xMax = cx + radius + TILE_SIZE - 1,
+					zMin = cz - radius,
+					zMax = cz + radius + TILE_SIZE - 1,
+				}
+			end
+			
+			local function get_perimeter_lots(radius, cx, cz)
+				-- Returns coordinates of all lots along a city's perimeter
 				
 				local lots = {};
-				local perimX = radius;
-				local perimZ = 0;
-				-- We only need to iterate a single octant of the perimeter
-				while perimX >= perimZ do
-					lots[#lots+1] = {
-						x = lot_floor(x + perimX),
-						z = lot_floor(z + perimZ),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x - perimX),
-						z = lot_floor(z + perimZ),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x + perimX),
-						z = lot_floor(z - perimZ),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x - perimX),
-						z = lot_floor(z - perimZ),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x + perimZ),
-						z = lot_floor(z + perimX),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x - perimZ),
-						z = lot_floor(z + perimX),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x + perimZ),
-						z = lot_floor(z - perimX),
-					}
-					lots[#lots+1] = {
-						x = lot_floor(x - perimZ),
-						z = lot_floor(z - perimX),
-					}
-					-- Move to the next lot along
-					perimZ = perimZ + LOT_SIZE;
-					if (perimX^2 + perimZ^2 > radius^2) then
-						perimX = perimX - LOT_SIZE;
-					end
+				local limits = get_city_limits(radius, cx, cz)
+				
+				for i=limits.xMin,limits.xMax do
+					lots[#lots+1] = {x=i, z=limits.zMin}
+					lots[#lots+1] = {x=i, z=limits.zMax}
+				end
+				for j=limits.zMin+1, limits.zMax-1 do
+					lots[#lots+1] = {x=limits.xMin, z=j}
+					lots[#lots+1] = {x=limits.xMax, z=j}
 				end
 				
 				return lots
@@ -92,7 +70,7 @@ function define_multiple_cities ()
 				-- Skirt the perimeter, looking for erroneous tiles
 				local borderlands = get_perimeter_lots(cRadius, cX, cZ);
 				for i=1,#borderlands do
-					-- TEST! We splat something obvious in the perimeter lots
+					-- TEST! We splat something obvious at the city limits
 					local lot = borderlands[i];
 					
 					LC:loadLot (lot.x, lot.z, yStart, "vacant/concrete", "n", turf.Lot.LOT_FILL_MODE_NORMAL);
