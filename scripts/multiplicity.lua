@@ -22,6 +22,20 @@ function define_multiple_cities ()
 				return ord - (ord % LOT_SIZE);
 			end
 			
+			local function place_marker(x, z)
+				-- Splat something obvious at the given lot location
+				x = lot_floor(x)
+				z = lot_floor(z)
+				
+				LC:loadLot (x, z, yStart, "vacant/concrete", "n", turf.Lot.LOT_FILL_MODE_NORMAL);
+
+				local L = LC:getLotAt (x, z);
+				local oldType = L.vtype;
+				L:clearData(LC);
+				L.vtype = turf.Lot.LOT_VACANT;
+				LC:markUpdate (x, z, oldType, L.vtype);
+			end
+			
 			local function get_city_limits(radius, cx, cz)
 				-- Return a table of a city's outer limit coordinates
 				-- City auto-gen uses 5x5 lot tiles, so the limits can extend outside the radius by up to 4 lots in the +ord directions.
@@ -58,35 +72,33 @@ function define_multiple_cities ()
 			local biglyness = math.min(xMax - xMin, zMax - zMin);
 			local num_cities = math.floor(biglyness / (2 * radius))
 			maxPlayerBases = math.max(1, maxPlayerBases/num_cities)
+			local perimeters = {}
 			
 			for i=1,num_cities do
 				-- Random position and variable radius
 				local cRadius = math.random(0.5 * radius, 1.5 * radius);
 				local cX = math.random(xMin + cRadius, xMax - cRadius);
 				local cZ = math.random(zMin + cRadius, zMax - cRadius);
+				perimeters[#perimeters+1] = get_city_limits(cRadius, cX, cZ);
+				
 				generate_city_old (W, LC, cRadius, cX, cZ, maxPlayerBases);
 				
-				Net:forceUpdateStartupStatusString ("Generating City - Merging borderlands");
-				-- Skirt the perimeter, looking for erroneous tiles
-				local borderlands = get_perimeter_lots(cRadius, cX, cZ);
-				for i=1,#borderlands do
-					-- TEST! We splat something obvious at the city limits
-					local lot = borderlands[i];
-					
-					LC:loadLot (lot.x, lot.z, yStart, "vacant/concrete", "n", turf.Lot.LOT_FILL_MODE_NORMAL);
-
-					local L = LC:getLotAt (lot.x, lot.z);
-					local oldType = L.vtype;
-					L:clearData(LC);
-					L.vtype = turf.Lot.LOT_VACANT;
-					LC:markUpdate (lot.x, lot.z, oldType, L.vtype);
-					
-					-- TODO: Connect merged roads along city perimeter
-					-- TODO: Clear lots carved up by city merge
-				end
-				
-				Net:doKeepAlive();
 			end
+			
+			Net:forceUpdateStartupStatusString ("Generating City - Merging overlaps");
+			-- Check all possible city lots for overlap artifacts
+			local checked = {}
+			for idx, perim in pairs(perimeters) do
+				for x=perim.xMin,perim.xMax do
+					for z=perim.zMin,perim.zMax do
+						-- TODO: Skip if we've already check this lot
+						-- TODO: Link this road to neighbouring ones
+						-- TODO: Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
+					end
+					Net:doKeepAlive();
+				end
+			end
+			
 		end
 	end
 end
