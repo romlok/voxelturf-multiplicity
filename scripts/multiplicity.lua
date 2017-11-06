@@ -122,8 +122,8 @@ function define_multiple_cities ()
 			local function get_road_directions(lot)
 				-- Return the "out" directions of the given road lot
 				-- Return value will be {n=bool, s=bool, e=bool, w=bool}
-				if lot.vtype ~= turf.Lot.LOT_ROAD then
-					return {}
+				if lot.vtype ~= turf.Lot.LOT_ROAD and lot.vtype ~= turf.Lot.LOT_HIGHWAY then
+					return {n=false, s=false, e=false, w=false}
 				end
 				local roadData = turf.LotRoadData.upcast(lot.lotData)
 				return {
@@ -153,8 +153,9 @@ function define_multiple_cities ()
 					return "cross"
 				end
 				if #roadpiece < 4 then
-					-- Should never happen with current city gen!
-					return "cross"
+					-- This one likely had a neighbour overwritten
+					-- so should wait for its neighbour to be fixed
+					return nil
 				end
 				return roadpiece
 			end
@@ -162,6 +163,9 @@ function define_multiple_cities ()
 			local function replace_road(lx, lz, dirs)
 				-- Replace an existing road lot with a similar one in different directions
 				local roadpiece = get_roadpiece(dirs)
+				if roadpiece == nil then
+					return
+				end
 				
 				LC:loadLot (lx, lz, yStart, "road/rfl/"..roadpiece, 'n', turf.Lot.LOT_FILL_MODE_NORMAL);
 				local L = LC:getLotAt (lx, lz);
@@ -207,10 +211,10 @@ function define_multiple_cities ()
 				
 				repeat
 					local lot = LC:getLotAt(coords.x, coords.z)
-					local dirs = get_road_directions(lot)
-					local newDirs = {}
 					if lot.vtype == turf.Lot.LOT_ROAD then
 						-- Link road to neighbouring ones
+						local dirs = get_road_directions(lot)
+						local newDirs = {}
 						local neighbours = get_adjacent_lots(coords.x, coords.z)
 						newDirs.n = get_road_directions(neighbours.n).s
 						newDirs.s = get_road_directions(neighbours.s).n
