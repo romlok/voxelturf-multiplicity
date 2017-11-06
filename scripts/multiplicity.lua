@@ -134,9 +134,49 @@ function define_multiple_cities ()
 				}
 			end
 			
-			local function replace_road(lot, dirs)
+			local function get_roadpiece(dirs)
+				-- Return the roadpeice for the given directions
+				local roadpiece = "j"
+				if dirs.n then
+					roadpiece = roadpiece.."n"
+				end
+				if dirs.s then
+					roadpiece = roadpiece.."s"
+				end
+				if dirs.e then
+					roadpiece = roadpiece.."e"
+				end
+				if dirs.w then
+					roadpiece = roadpiece.."w"
+				end
+				if #roadpiece > 4 then
+					return "cross"
+				end
+				if #roadpiece < 4 then
+					-- Should never happen with current city gen!
+					return "cross"
+				end
+				return roadpiece
+			end
+			
+			local function replace_road(lx, lz, dirs)
 				-- Replace an existing road lot with a similar one in different directions
-				--TODO
+				local roadpiece = get_roadpiece(dirs)
+				
+				LC:loadLot (lx, lz, yStart, "road/rfl/"..roadpiece, 'n', turf.Lot.LOT_FILL_MODE_NORMAL);
+				local L = LC:getLotAt (lx, lz);
+				local oldType = L.vtype;
+				L:clearData(LC);
+				
+				local LRD = turf.LotRoadData.genNew ();
+				LRD:set(dirs.n, dirs.s, dirs.e, dirs.w);
+				
+				L.vtype = turf.Lot.LOT_ROAD;
+				L.lotData = LRD;
+				
+				LC:markUpdate (lx, lz, oldType, L.vtype);
+				LC:insureLot (0, turf.LotCoordinate(lx, lz), true, true);
+				
 			end
 			
 			
@@ -177,7 +217,8 @@ function define_multiple_cities ()
 						newDirs.e = get_road_directions(neighbours.e).w
 						newDirs.w = get_road_directions(neighbours.w).e
 						if dirs.n ~= newDirs.n or dirs.s ~= newDirs.s or dirs.e ~= newDirs.e or dirs.w ~= newDirs.w then
-							replace_road(lot, newDirs);
+							replace_road(coords.x, coords.z, newDirs);
+							Net:doKeepAlive();
 						end
 					end
 					
