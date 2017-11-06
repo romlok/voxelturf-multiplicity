@@ -183,6 +183,21 @@ function define_multiple_cities ()
 				
 			end
 			
+			local function make_vacant(lx, lz)
+				-- Make sure the given lot location is vacant
+				local dirs = { 'n','s','e','w' };
+				local vacantLots = { "v1", "v2", "v3", "v4", "v5", "v6", "v7" }
+				
+				LC:loadLot (lx, lz, yStart, "vacant/" .. vacantLots[math.random(1,#vacantLots)], dirs[math.random(1,#dirs)], turf.Lot.LOT_FILL_MODE_NORMAL);
+				
+				local L = LC:getLotAt (lx, lz);
+				local oldType = L.vtype;
+				L:clearData(LC);
+				L.vtype = turf.Lot.LOT_VACANT;
+				LC:markUpdate (lx, lz, oldType, L.vtype);
+				
+			end
+			
 			
 			-- Start the actual generation
 			
@@ -222,15 +237,20 @@ function define_multiple_cities ()
 						newDirs.w = get_road_directions(neighbours.w).e
 						if dirs.n ~= newDirs.n or dirs.s ~= newDirs.s or dirs.e ~= newDirs.e or dirs.w ~= newDirs.w then
 							replace_road(coords.x, coords.z, newDirs);
-							Net:doKeepAlive();
 						end
+						
+					elseif lot.vtype == turf.Lot.LOT_VACANT then
+						-- Parts of dissected buildings are marked vacant,
+						-- but the blocks are not cleared
+						make_vacant(coords.x, coords.z)
+						
 					end
 					
 					--TODO Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
 					
 					coords = get_next_lot(coords, perim, checked)
+					Net:doKeepAlive();
 				until coords == nil;
-				Net:doKeepAlive();
 				checked[#checked+1] = perim;
 			end
 		end
