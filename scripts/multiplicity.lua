@@ -58,11 +58,11 @@ function define_multiple_cities ()
 				return true
 			end
 			
-			local function get_next_lot(lot, perim, excludes)
+			local function get_next_lot(coords, perim, excludes)
 				-- Return coords for the next lot within the given perim, excluding any that are within the excludes
-				local newLot
-				local x = lot_floor(lot.x)
-				local z = lot_floor(lot.z)
+				local newCoords
+				local x = lot_floor(coords.x)
+				local z = lot_floor(coords.z)
 				repeat
 					x = x + LOT_SIZE
 					if x > perim.xMax then
@@ -74,20 +74,20 @@ function define_multiple_cities ()
 						-- End of the line, none left to process
 						return nil
 					end
-					newLot = {x=x, z=z}
+					newCoords = {x=x, z=z}
 					
-					-- Move the new lot to the far side of any excludes
+					-- Move the new coords to the far side of any excludes
 					for idx, exc in pairs(excludes or {}) do
-						if lot_in_region(newLot, exc) then
-							newLot.x = exc.xMax + LOT_SIZE
+						if lot_in_region(newCoords, exc) then
+							newCoords.x = exc.xMax + LOT_SIZE
 							-- x will be incremented on the next while
 							x = exc.xMax
 						end
 					end
 					
-				until lot_in_region(newLot, perim)
+				until lot_in_region(newCoords, perim)
 				
-				return newLot
+				return newCoords
 			end
 			
 			local function get_perimeter_lots(radius, cx, cz)
@@ -128,18 +128,18 @@ function define_multiple_cities ()
 				
 			end
 			
-			Net:forceUpdateStartupStatusString ("Generating City - Merging overlaps");
+			Net:forceUpdateStartupStatusString ("Generating City - Merging overlap");
 			-- Check all possible city lots for overlap artifacts
 			local checked = {}
 			for idx, perim in pairs(perimeters) do
-				local lot = {x = perim.xMin, z = perim.zMin}
+				local coords = {x = perim.xMin, z = perim.zMin}
 				
 				repeat
 					--TODO Link road to neighbouring ones
 					--TODO Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
 					
-					lot = get_next_lot(lot, perim, checked)
-				until lot == nil;
+					coords = get_next_lot(coords, perim, checked)
+				until coords == nil;
 				Net:doKeepAlive();
 				checked[#checked+1] = perim;
 			end
