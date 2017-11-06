@@ -108,6 +108,37 @@ function define_multiple_cities ()
 				return lots
 			end
 			
+			local function get_adjacent_lots(lx, lz)
+				-- Returns a table of Lot objects adjacent to the given coords
+				-- Return value be all like {n= ,e=, s=, w=} up in your face
+				return {
+					n = LC:getLotAt(lx+LOT_SIZE, lz),
+					s = LC:getLotAt(lx-LOT_SIZE, lz),
+					e = LC:getLotAt(lx, lz+LOT_SIZE),
+					w = LC:getLotAt(lx, lz-LOT_SIZE),
+				}
+			end
+			
+			local function get_road_directions(lot)
+				-- Return the "out" directions of the given road lot
+				-- Return value will be {n=bool, s=bool, e=bool, w=bool}
+				if lot.vtype ~= turf.Lot.LOT_ROAD then
+					return {}
+				end
+				local roadData = turf.LotRoadData.upcast(lot.lotData)
+				return {
+					n = roadData:n(),
+					s = roadData:s(),
+					e = roadData:e(),
+					w = roadData:w(),
+				}
+			end
+			
+			local function replace_road(lot, dirs)
+				-- Replace an existing road lot with a similar one in different directions
+				--TODO
+			end
+			
 			
 			-- Start the actual generation
 			
@@ -135,7 +166,21 @@ function define_multiple_cities ()
 				local coords = {x = perim.xMin, z = perim.zMin}
 				
 				repeat
-					--TODO Link road to neighbouring ones
+					local lot = LC:getLotAt(coords.x, coords.z)
+					local dirs = get_road_directions(lot)
+					local newDirs = {}
+					if lot.vtype == turf.Lot.LOT_ROAD then
+						-- Link road to neighbouring ones
+						local neighbours = get_adjacent_lots(coords.x, coords.z)
+						newDirs.n = get_road_directions(neighbours.n).s
+						newDirs.s = get_road_directions(neighbours.s).n
+						newDirs.e = get_road_directions(neighbours.e).w
+						newDirs.w = get_road_directions(neighbours.w).e
+						if dirs.n ~= newDirs.n or dirs.s ~= newDirs.s or dirs.e ~= newDirs.e or dirs.w ~= newDirs.w then
+							replace_road(lot, newDirs);
+						end
+					end
+					
 					--TODO Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
 					
 					coords = get_next_lot(coords, perim, checked)
