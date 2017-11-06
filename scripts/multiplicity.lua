@@ -47,6 +47,49 @@ function define_multiple_cities ()
 				}
 			end
 			
+			local function lot_in_region(lot, perim)
+				-- Return if the given lot is within the perim
+				if lot.x < perim.xMin or lot.x > perim.xMax then
+					return false
+				end
+				if lot.z < perim.zMin or lot.z > perim.zMax then
+					return false
+				end
+				return true
+			end
+			
+			local function get_next_lot(lot, perim, excludes)
+				-- Return coords for the next lot within the given perim, excluding any that are within the excludes
+				local newLot
+				local x = lot_floor(lot.x)
+				local z = lot_floor(lot.z)
+				repeat
+					x = x + LOT_SIZE
+					if x > perim.xMax then
+						-- Move to the next z-line
+						x = perim.xMin
+						z = z + LOT_SIZE
+					end
+					if z > perim.zMax then
+						-- End of the line, none left to process
+						return nil
+					end
+					newLot = {x=x, z=z}
+					
+					-- Move the new lot to the far side of any excludes
+					for idx, exc in pairs(excludes or {}) do
+						if lot_in_region(newLot, exc) then
+							newLot.x = exc.xMax + LOT_SIZE
+							-- x will be incremented on the next while
+							x = exc.xMax
+						end
+					end
+					
+				until lot_in_region(newLot, perim)
+				
+				return newLot
+			end
+			
 			local function get_perimeter_lots(radius, cx, cz)
 				-- Returns coordinates of all lots along a city's perimeter
 				
@@ -89,16 +132,17 @@ function define_multiple_cities ()
 			-- Check all possible city lots for overlap artifacts
 			local checked = {}
 			for idx, perim in pairs(perimeters) do
-				for x=perim.xMin,perim.xMax do
-					for z=perim.zMin,perim.zMax do
-						-- TODO: Skip if we've already check this lot
-						-- TODO: Link this road to neighbouring ones
-						-- TODO: Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
-					end
-					Net:doKeepAlive();
-				end
+				local lot = {x = perim.xMin, z = perim.zMin}
+				
+				repeat
+					--TODO Link road to neighbouring ones
+					--TODO Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
+					
+					lot = get_next_lot(lot, perim, checked)
+				until lot == nil;
+				Net:doKeepAlive();
+				checked[#checked+1] = perim;
 			end
-			
 		end
 	end
 end
