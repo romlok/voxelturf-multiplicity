@@ -228,7 +228,7 @@ function define_multiple_cities ()
 			
 			for i=1,num_cities do
 				-- Random position and variable radius
-				local cRadius = math.random(0.5 * radius, 1.5 * radius);
+				local cRadius = math.random(0.6 * radius, 1.4 * radius);
 				local cX = math.random(xMin + cRadius, xMax - cRadius);
 				local cZ = math.random(zMin + cRadius, zMax - cRadius);
 				perimeters[#perimeters+1] = get_city_limits(cRadius, cX, cZ);
