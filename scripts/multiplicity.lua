@@ -244,10 +244,52 @@ function define_multiple_cities ()
 						-- but the blocks are not cleared
 						make_vacant(coords.x, coords.z)
 						
+					else
+						-- Skip if this isn't the primary lot of the building
+						local mainCoords = LC:getLotCoordinateByAddr(lot);
+						if mainCoords.x ~= coords.x or mainCoords.z ~= coords.z then
+							goto nextLotPlease
+						end
+						
+						--TODO: Delete if it's no longer facing a road. Rare, but could happen.
+						
+						-- Wipe out this lot if it's been cut up
+						local lotpackItem = lot:wrangleLotPackData()
+						if not lotpackItem then
+							goto nextLotPlease
+						end
+						if not lotpackItem:isFootprintKnown() then
+							goto nextLotPlease
+						end
+						local xSize = lotpackItem.footprintXsz
+						local zSize = lotpackItem.footprintZsz
+						if xSize < 2 and zSize < 2 then
+							goto nextLotPlease
+						end
+						-- Work out orientation of the lot
+						local rot = lot.lotPackReferenceData:getRotation()
+						if rot == "n" or rot == "s" then
+							xSize, zSize = zSize, xSize
+						end
+						-- We can wipe if any lots within the footprint are a different lotpack item
+						-- This is not a perfect check, but 99% of the time, it works all the time
+						--TODO: Find a way to know *exactly* if two lots belong to the same building
+						local fpXMax = coords.x + ((xSize-1) * LOT_SIZE)
+						local fpZMax = coords.z + ((zSize-1) * LOT_SIZE)
+						for i=coords.x, fpXMax, LOT_SIZE do
+							for j=coords.z, fpZMax, LOT_SIZE do
+								local sublot = LC:getLotAt(i, j)
+								local sublotpackItem = sublot:wrangleLotPackData()
+								if (not sublotpackItem) or (sublotpackItem.id ~= lotpackItem.id) then
+									make_vacant(coords.x, coords.z)
+									goto nextLotPlease
+								end
+							end
+						end
+						
 					end
 					
-					--TODO Wipe out this lot (and appropriate neighbours) if it's been cut up, or not connected to a road
-					
+					::nextLotPlease::
 					coords = get_next_lot(coords, perim, checked)
 					Net:doKeepAlive();
 				until coords == nil;
