@@ -1,0 +1,40 @@
+# File to upload mods to the Steam Workshop
+# !! EVERYTHING is CASE SENSITIVE !!
+# Workshop Item Id
+# (set to zero to create a new workshop item, this file will be updated with the workship item id from Steam)
+1194738452
+
+# Upload this to Steam (YES/NO). Will be set to NO after upload!
+YES
+
+# Title. This is what will be displayed on the workshop page. Must not be "DefaultTitle"
+MultipliCity
+
+# Directory that contains the files. Must not be "Mod_Directory_Name_Here"
+multiplicity
+
+# Visibility. Must be PUBLIC, PRIVATE or FRIENDS_ONLY
+PRIVATE
+
+# Description. Use as many lines as you like. End with END_DESCRIPTION
+MultipliCity alters map generation so that multiple cities are created randomly across the map, possibly overlapping. This makes the map more urban, but with a hopefully more interesting distribution than merely enlarging a single centralised city, as the example Bigger Cities mod does.
+
+The mod attempts to cleanly merge cities which overlap, but can result in some "interesting" road layouts at the seams.
+
+https://github.com/romlok/voxelturf-multiplicity
+
+Known Bugs
+----------
+Global spawn points, commerce, and offices get placed toward the map centre, rather than the city centres. This is a bug/quirk of the original city generation code.
+END_DESCRIPTION
+
+# Change log. Use as many lines as you like. End with END_CHANGES
+
+END_CHANGES
+
+# Tags. Use semicolon seperated list
+# Common tags: lotpack ; graphics ; sfx ; music ; maps ; missions ; vehicles ; scripts ; weapons ; ui 
+maps
+
+# Preview Pictures. Tag with "PICTURE ; path/to/picture.jpg" or png or gif. One per line. Only the first is used
+PICTURE ; 4096.png
