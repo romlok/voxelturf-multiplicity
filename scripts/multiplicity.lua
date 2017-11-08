@@ -280,31 +280,25 @@ function define_multiple_cities ()
 						if not lotpackItem:isFootprintKnown() then
 							goto nextLotPlease
 						end
-						local xSize = lotpackItem.footprintXsz
-						local zSize = lotpackItem.footprintZsz
-						if xSize < 2 and zSize < 2 then
+						if lotpackItem.footprintXsz < 2 and lotpackItem.footprintZsz < 2 then
 							goto nextLotPlease
 						end
-						-- Work out orientation of the lot
-						local rot = lot.lotPackReferenceData:getRotation()
-						if rot == "n" or rot == "s" then
-							xSize, zSize = zSize, xSize
+						-- Truncated lots sit all alone, so we can ignore any lot which is the same building in adjacent lots
+						if LC:isInSameLot(coords.x+LOT_SIZE, coords.z, coords.x, coords.z) then
+							goto nextLotPlease
 						end
-						-- We can wipe if any lots within the footprint are a different lotpack item
-						-- This is not a perfect check, but 99% of the time, it works all the time
-						--TODO: Find a way to know *exactly* if two lots belong to the same building
-						local fpXMax = coords.x + ((xSize-1) * LOT_SIZE)
-						local fpZMax = coords.z + ((zSize-1) * LOT_SIZE)
-						for i=coords.x, fpXMax, LOT_SIZE do
-							for j=coords.z, fpZMax, LOT_SIZE do
-								local sublot = LC:getLotAt(i, j)
-								local sublotpackItem = sublot:wrangleLotPackData()
-								if (not sublotpackItem) or (sublotpackItem.id ~= lotpackItem.id) then
-									make_vacant(coords.x, coords.z)
-									goto nextLotPlease
-								end
-							end
+						if LC:isInSameLot(coords.x, coords.z+LOT_SIZE, coords.x, coords.z) then
+							goto nextLotPlease
 						end
+						if LC:isInSameLot(coords.x-LOT_SIZE, coords.z, coords.x, coords.z) then
+							goto nextLotPlease
+						end
+						if LC:isInSameLot(coords.x, coords.z-LOT_SIZE, coords.x, coords.z) then
+							goto nextLotPlease
+						end
+						
+						-- No checks left to do, must be a bad 'un
+						make_vacant(coords.x, coords.z)
 						
 					end
 					
