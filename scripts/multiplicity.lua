@@ -1,5 +1,11 @@
 -- Overrides calls to generate_city with multiple calls to generate_city!
 
+-- Customisation options
+local CITIES_PER_KM2 = 0.5
+local MIN_RADIUS_MULTIPLIER = 0.7
+local MAX_RADIUS_MULTIPLIER = 1.3
+
+
 function define_multiple_cities ()
 	if (generate_city_old == nil) then -- Prevents double-defines
 		generate_city_old = generate_city; -- backup existing generate_city
@@ -221,14 +227,18 @@ function define_multiple_cities ()
 			-- Start the actual generation
 			
 			-- Work out an appropriate number of cities based on map size
-			local biglyness = math.min(xMax - xMin, zMax - zMin);
-			local num_cities = math.floor(biglyness / (2 * radius))
+			local mapArea = (xMax - xMin) * (zMax - zMin)
+			local num_cities = (mapArea / 1000000) * CITIES_PER_KM2
+			num_cities = math.max(1, math.floor(num_cities))
 			maxPlayerBases = math.max(1, maxPlayerBases/num_cities)
 			local perimeters = {}
 			
 			for i=1,num_cities do
 				-- Random position and variable radius
-				local cRadius = math.random(0.6 * radius, 1.4 * radius);
+				local cRadius = math.random(
+					MIN_RADIUS_MULTIPLIER * radius,
+					MAX_RADIUS_MULTIPLIER * radius
+				);
 				local cX = math.random(xMin + cRadius, xMax - cRadius);
 				local cZ = math.random(zMin + cRadius, zMax - cRadius);
 				perimeters[#perimeters+1] = get_city_limits(cRadius, cX, cZ);
