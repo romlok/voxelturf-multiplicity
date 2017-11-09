@@ -14,7 +14,7 @@ MultipliCity
 multiplicity
 
 # Visibility. Must be PUBLIC, PRIVATE or FRIENDS_ONLY
-PRIVATE
+PUBLIC
 
 # Description. Use as many lines as you like. End with END_DESCRIPTION
 MultipliCity alters map generation so that multiple cities are created randomly across the map, possibly overlapping. This makes the map more urban, but with a hopefully more interesting distribution than merely enlarging a single centralised city, as the example Bigger Cities mod does.
@@ -31,6 +31,11 @@ Global spawn points, commerce, and offices get placed toward the map centre, rat
 END_DESCRIPTION
 
 # Change log. Use as many lines as you like. End with END_CHANGES
+[list]
+[*]Added constants for customising city size and quantity.
+[*]Number of cities now scales linearly with map area.
+[*]Reduced default variance in city size.
+[/list]
 END_CHANGES
 
 # Tags. Use semicolon seperated list
