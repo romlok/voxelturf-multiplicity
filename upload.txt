@@ -2,7 +2,7 @@
 # !! EVERYTHING is CASE SENSITIVE !!
 # Workshop Item Id
 # (set to zero to create a new workshop item, this file will be updated with the workship item id from Steam)
-1194738452
+1196104761
 
 # Upload this to Steam (YES/NO). Will be set to NO after upload!
 YES
@@ -23,13 +23,14 @@ The mod attempts to cleanly merge cities which overlap, but can result in some "
 
 https://github.com/romlok/voxelturf-multiplicity
 
-Known Bugs
-----------
+
+[h1]Known Bugs[/h1]
+
 Global spawn points, commerce, and offices get placed toward the map centre, rather than the city centres. This is a bug/quirk of the original city generation code.
+
 END_DESCRIPTION
 
 # Change log. Use as many lines as you like. End with END_CHANGES
-
 END_CHANGES
 
 # Tags. Use semicolon seperated list
@@ -37,4 +38,4 @@ END_CHANGES
 maps
 
 # Preview Pictures. Tag with "PICTURE ; path/to/picture.jpg" or png or gif. One per line. Only the first is used
-PICTURE ; 4096.png
+PICTURE ; multiplicity/4096.png
