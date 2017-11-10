@@ -28,19 +28,26 @@ https://github.com/romlok/voxelturf-multiplicity
 
 Global spawn points, commerce, and offices get placed toward the map centre, rather than the city centres. This is a bug/quirk of the original city generation code.
 
+If you wish to correct this, open the Voxel Turf file scripts/server/map_generation/city_generation.lua, go to line 587, and replace the sortDistFunc function with:
+[code]
+local function sortDistFunc (a, b)
+	return len2 (a.x - startX, a.z - startZ) < len2 (b.x - startX, b.z - startZ);
+end	
+[/code]
+
 END_DESCRIPTION
 
 # Change log. Use as many lines as you like. End with END_CHANGES
+No changes to the actual mod this time, just the workshop metadata:
 [list]
-[*]Added constants for customising city size and quantity.
-[*]Number of cities now scales linearly with map area.
-[*]Reduced default variance in city size.
+[*]Updated the tags used in the workshop.
+[*]Added bug fix/workaround to description.
 [/list]
 END_CHANGES
 
 # Tags. Use semicolon seperated list
 # Common tags: lotpack ; graphics ; sfx ; music ; maps ; missions ; vehicles ; scripts ; weapons ; ui 
-maps
+scripts ; worldgen
 
 # Preview Pictures. Tag with "PICTURE ; path/to/picture.jpg" or png or gif. One per line. Only the first is used
 PICTURE ; multiplicity/4096.png
