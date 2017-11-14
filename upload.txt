@@ -38,10 +38,8 @@ end
 END_DESCRIPTION
 
 # Change log. Use as many lines as you like. End with END_CHANGES
-No changes to the actual mod this time, just the workshop metadata:
 [list]
-[*]Updated the tags used in the workshop.
-[*]Added bug fix/workaround to description.
+[*]Reduce ecological impact of partial demolitions. Lots outside cities should now be less noisy.
 [/list]
 END_CHANGES
 

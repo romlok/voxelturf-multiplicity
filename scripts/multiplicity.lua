@@ -189,28 +189,39 @@ function define_multiple_cities ()
 				
 			end
 			
-			local function is_roundabout(x, z)
-				-- Return whether the given lot is a roundabout
-				-- By which we mean if it's surrounded on 4 sides by roads
-				local neighbours = get_adjacent_lots(x, z)
-				for idx, lot in pairs(neighbours) do
-					if lot.vtype ~= turf.Lot.LOT_ROAD then
-						return false
-					end
-				end
-				return true
-			end
-			
 			local function make_vacant(lx, lz)
 				-- Make sure the given lot location is vacant
 				local dirs = { 'n','s','e','w' };
 				local vacantLots = { "v1", "v2", "v3", "v4", "v5", "v6", "v7" }
 				
+				-- The type of vacancy depends on its surroundings
+				local isBarren = true
+				local isRoundabout = true
+				for idx, lot in pairs(get_adjacent_lots(lx, lz)) do
+					if lot.vtype ~= turf.Lot.LOT_ROAD then
+						isRoundabout = false
+					end
+					if lot.vtype ~= turf.Lot.LOT_VACANT
+							and lot.vtype ~= turf.Lot.LOT_HILLS
+							and lot.vtype ~= turf.Lot.LOT_SEA
+							then
+						isBarren = false
+					end
+				end
+				
 				local vacancyType
-				if is_roundabout(lx, lz) then
+				if isRoundabout then
 					vacancyType = "misc/roundabout"
+				elseif isBarren then
+					-- Barren lots are (hopefully) outside any city
+					vacancyType = nil
 				else
 					vacancyType =  "vacant/"..vacantLots[math.random(1,#vacantLots)]
+				end
+				
+				if not vacancyType then
+					-- We don't want to change this lot
+					return
 				end
 				
 				LC:loadLot (lx, lz, yStart, vacancyType, dirs[math.random(1,#dirs)], turf.Lot.LOT_FILL_MODE_NORMAL);
