@@ -189,39 +189,95 @@ function define_multiple_cities ()
 				
 			end
 			
+			local function is_roundabout(x, z)
+				-- Return whether the given lot is a roundabout
+				-- By which we mean if it's surrounded on 4 sides by roads
+				local neighbours = get_adjacent_lots(x, z)
+				for idx, lot in pairs(neighbours) do
+					if lot.vtype ~= turf.Lot.LOT_ROAD then
+						return false
+					end
+				end
+				return true
+			end
+			
+			local function is_urban(lx, lz)
+				-- Whether the given location is an urban lot
+				local lot = LC:getLotAt(lx, lz)
+				if not lot then
+					return false
+				end
+				if lot.vtype == turf.Lot.LOT_VACANT then
+					return false
+				end
+				if lot.vtype == turf.Lot.LOT_HILLS then
+					return false
+				end
+				if lot.vtype == turf.Lot.LOT_SEA then
+					return false
+				end
+				return true
+			end
+			
+			local function dist_to_urban(lx, lz, dir, max_dist)
+				-- Distance to an urban lot in the given direction from a location, within the given distance
+				-- "Dir" can be one of ne/nw/se/sw
+				-- The distance is given in plots (16x16 blocks)
+				-- Returns nil if no urbanisation was found
+				local dirs = {
+					n = {dx=1, dz=0},
+					s = {dx=-1, dz=0},
+					e = {dx=0, dz=1},
+					w = {dx=0, dz=-1},
+					ne = {dx=1, dz=1},
+					nw = {dx=1, dz=-1},
+					se = {dx=-1, dz=1},
+					sw = {dx=-1, dz=-1}
+				}
+				local dx = dirs[dir].dx * LOT_SIZE
+				local dz = dirs[dir].dz * LOT_SIZE
+				for i=1,max_dist do
+					local ix = lx + (i * dx)
+					local iz = lz + (i * dz)
+					if is_urban(ix, iz) then
+						return i
+					end
+				end
+				return nil
+			end
+			
+			local function is_rural(lx, lz)
+				-- Return whether or not the given lot coords are outside urban areas
+				-- We define this as not being between two urban areas in any direction, within reason
+				-- "Reason" being derived from the size of the largest building plot
+				local max_dist = 6
+				local distI
+				local distJ
+				-- First check the ne-sw direction
+				distI = dist_to_urban(lx, lz, "n", max_dist)
+				distJ = dist_to_urban(lx, lz, "s", max_dist - (distI or 0))
+				if distI and distJ then
+					return false
+				end
+				-- Now check nw-se
+				distI = dist_to_urban(lx, lz, "e", max_dist)
+				distJ = dist_to_urban(lx, lz, "w", max_dist - (distI or 0))
+				if distI and distJ then
+					return false
+				end
+				return true
+			end
+			
 			local function make_vacant(lx, lz)
 				-- Make sure the given lot location is vacant
 				local dirs = { 'n','s','e','w' };
 				local vacantLots = { "v1", "v2", "v3", "v4", "v5", "v6", "v7" }
 				
-				-- The type of vacancy depends on its surroundings
-				local isBarren = true
-				local isRoundabout = true
-				for idx, lot in pairs(get_adjacent_lots(lx, lz)) do
-					if lot.vtype ~= turf.Lot.LOT_ROAD then
-						isRoundabout = false
-					end
-					if lot.vtype ~= turf.Lot.LOT_VACANT
-							and lot.vtype ~= turf.Lot.LOT_HILLS
-							and lot.vtype ~= turf.Lot.LOT_SEA
-							then
-						isBarren = false
-					end
-				end
-				
 				local vacancyType
-				if isRoundabout then
+				if is_roundabout(lx, lz) then
 					vacancyType = "misc/roundabout"
-				elseif isBarren then
-					-- Barren lots are (hopefully) outside any city
-					vacancyType = nil
 				else
 					vacancyType =  "vacant/"..vacantLots[math.random(1,#vacantLots)]
-				end
-				
-				if not vacancyType then
-					-- We don't want to change this lot
-					return
 				end
 				
 				LC:loadLot (lx, lz, yStart, vacancyType, dirs[math.random(1,#dirs)], turf.Lot.LOT_FILL_MODE_NORMAL);
@@ -282,6 +338,10 @@ function define_multiple_cities ()
 					elseif lot.vtype == turf.Lot.LOT_VACANT then
 						-- Parts of dissected buildings are marked vacant,
 						-- but the blocks are not cleared
+						if is_rural(coords.x, coords.z) then
+							goto nextLotPlease
+						end
+						
 						make_vacant(coords.x, coords.z)
 						
 					else

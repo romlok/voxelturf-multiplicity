@@ -39,7 +39,7 @@ END_DESCRIPTION
 
 # Change log. Use as many lines as you like. End with END_CHANGES
 [list]
-[*]Reduce ecological impact of partial demolitions. Lots outside cities should now be less noisy.
+[*]Reduce ecological impact of vacating lots. Areas outside of city limits should now be more natural.
 [/list]
 END_CHANGES
 
