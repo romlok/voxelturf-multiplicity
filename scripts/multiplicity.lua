@@ -7,8 +7,8 @@ local MAX_RADIUS_MULTIPLIER = 1.3
 
 
 function define_multiple_cities ()
-	if (generate_city_old == nil) then -- Prevents double-defines
-		generate_city_old = generate_city; -- backup existing generate_city
+	if (multiplicity_old_generate_city == nil) then -- Prevents double-defines
+		multiplicity_old_generate_city = generate_city; -- backup existing generate_city
 		
 		generate_city = function (W, LC, radius, startX, startZ, maxPlayerBases) -- define a wrapper
 			local Net = turf.NetworkHandler.getInstance ();
@@ -310,7 +310,7 @@ function define_multiple_cities ()
 				local cZ = math.random(zMin + cRadius, zMax - cRadius);
 				perimeters[#perimeters+1] = get_city_limits(cRadius, cX, cZ);
 				
-				generate_city_old (W, LC, cRadius, cX, cZ, maxPlayerBases);
+				multiplicity_old_generate_city (W, LC, cRadius, cX, cZ, maxPlayerBases);
 				
 			end
 			
