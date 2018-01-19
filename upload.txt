@@ -36,18 +36,6 @@ local MIN_RADIUS_MULTIPLIER = 0.7
 local MAX_RADIUS_MULTIPLIER = 1.3
 [/code]
 
-
-[h1]Known Bugs[/h1]
-
-Global spawn points, commerce, and offices get placed toward the map centre, rather than the city centres. This is a bug/quirk of the original city generation code.
-
-If you wish to correct this, open the Voxel Turf file scripts/server/map_generation/city_generation.lua, go to line 587, and replace the sortDistFunc function with:
-[code]
-local function sortDistFunc (a, b)
-	return len2 (a.x - startX, a.z - startZ) < len2 (b.x - startX, b.z - startZ);
-end	
-[/code]
-
 END_DESCRIPTION
 
 # Change log. Use as many lines as you like. End with END_CHANGES
